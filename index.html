@@ -10,15 +10,14 @@
   <meta charset="utf-8">
 </head>
 
-<body class="d-flex align-items-center flex-column p-3 w-100" style="background-color: #eee;">
-  <table class="table" id="signatures" style="width: 100%;">
+<body>
+  <table class="table" id="signatures">
     <tr>
-      <th style="width: calc(100% / 6);">Date</th>
-      <th style="width: calc(100% / 6);">Nom client</th>
-      <th style="width: calc(100% / 6);">Email client</th>
-      <th style="width: calc(100% / 6);">Nom conseiller</th>
-      <th style="width: calc(100% / 6);">Email conseiller</th>
-      <th style="width: calc(100% / 6);">Statut</th>
+      <th>Date ⬇️</th>
+      <th>Type</th>
+      <th>Client</th>
+      <th>Conseiller</th>
+      <th>Statut</th>
     </tr>
   </table>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -29,25 +28,39 @@
       .then(response => response.json())
       .then(response => {
         response.forEach(element => {
+          const TYPE = String(element.emailSubject).split(' ')[0] + ' ' + String(element.emailSubject).split(' ')[1] + ' ' + String(element.emailSubject).split(' ')[2];
           SIGNATURES.push({
             advisorEmail: String(element.emailBlurb).split('\n')[3],
             advisorName: String(element.emailBlurb).split('\n')[2] ? String(element.emailBlurb).split('\n')[2].replace('Conseiller: ', '') : '',
             clientEmail: String(element.emailBlurb).split('\n')[1],
             clientName: String(element.emailBlurb).split('\n')[0] ? String(element.emailBlurb).split('\n')[0].replace('Client: ', '') : '',
             dateTime: element.statusChangedDateTime,
-            status: element.status
+            status: element.status,
+            type: TYPE.replace('Immocitiz', '')
           });
         });
 
         let temp = '';
         SIGNATURES.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)).forEach(element => {
+          switch (element.status) {
+            case 'completed':
+              temp += '<tr class="table-success">';
+              break;
+            case 'declined':
+              temp += '<tr class="table-danger">';
+              break;
+            case 'sent':
+              temp += '<tr class="table-warning">';
+              break;
+            case 'voided':
+              temp += '<tr>';
+              break;
+          }
           temp +=
-            '<tr>' +
-              '<td>' + new Date(element.dateTime).toLocaleDateString('fr-FR') + ' ' + new Date(element.dateTime).toLocaleTimeString('fr-FR') + '</td>' +
-              '<td>' + element.clientName + '</td>' +
-              '<td>' + element.clientEmail + '</td>' +
-              '<td>' + element.advisorName + '</td>' +
-              '<td>' + element.advisorEmail + '</td>';
+            '<td>' + new Date(element.dateTime).toLocaleDateString('fr-FR') + ' ' + new Date(element.dateTime).toLocaleTimeString('fr-FR') + '</td>' +
+            '<td>' + String(element.type).trim() + '</td>' +
+            '<td>' + String(element.clientName).trim() + ' (' + String(element.clientEmail).trim() + ')</td>' +
+            '<td>' + String(element.advisorName).trim() + ' (' + String(element.advisorEmail).trim() + ')</td>';
           switch (element.status) {
             case 'completed':
               temp += '<td>Complétée</td>';
